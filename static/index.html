@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OPC Agentic AI Decision System</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-lockup">
+        <div class="brand-mark">OPC</div>
+        <div>
+          <h1>OPC Agentic AI Decision System</h1>
+          <p>Team TSD · MIS Talent 2026 · Live Prototype</p>
+        </div>
+      </div>
+      <div class="top-status">
+        <span class="build-pill"><span class="dot"></span> Backend ready</span>
+        <span id="dataBadge" class="status-pill status-loading"><span class="dot"></span> Đang đọc TeamPack</span>
+        <span id="openaiBadge" class="status-pill status-neutral openai-status"><img src="/static/assets/openai-blossom.svg" alt="OpenAI"> OpenAI</span>
+        <div class="live-clock"><span>LIVE SYSTEM TIME</span><strong id="clock">--/-- · --:--:--</strong></div>
+      </div>
+    </header>
+
+    <section class="command-bar" aria-label="Điều khiển phân tích">
+      <label class="command-field file-field" for="teamPackInput">
+        <span>Team Pack</span>
+        <strong id="fileName">Dùng dữ liệu mặc định</strong>
+        <input id="teamPackInput" type="file" accept=".xlsx">
+      </label>
+      <label class="command-field">
+        <span>Hợp đồng</span>
+        <select id="contractSelect" aria-label="Chọn hợp đồng từ TeamPack đang tải"></select>
+      </label>
+      <div class="command-field scenario-field">
+        <span>Analysis mode</span>
+        <div class="fixed-mode"><i></i><strong>Live TeamPack</strong></div>
+      </div>
+      <label class="command-field ai-field">
+        <span>AI mode</span>
+        <span class="ai-control"><input id="useOpenAI" type="checkbox" checked><i></i><strong>OpenAI online</strong></span>
+      </label>
+      <div class="command-field model-field"><span>Model</span><strong id="modelName">—</strong></div>
+      <button id="runButton" class="run-button"><span class="run-icon">▶</span><span>Run Analysis</span></button>
+      <button id="exportButton" class="secondary-button" disabled>Download JSON</button>
+      <button id="evidenceButton" class="icon-button" title="OpenAI Guardrails" aria-label="Mở kiểm soát OpenAI" disabled>↗</button>
+    </section>
+
+    <main class="three-column-layout">
+      <section class="stage-column input-column">
+        <header class="stage-header">
+          <span class="stage-number blue">1</span>
+          <div><h2>Input Data</h2><p>Team Pack evidence & Financial Snapshot</p></div>
+          <span id="sheetCount" class="micro-badge">-- sheets</span>
+        </header>
+        <div class="stage-scroll">
+          <article class="opportunity-card">
+            <div class="opportunity-top"><div><span>SELECTED OPPORTUNITY</span><h3 id="contractDisplay">—</h3></div><span class="verified-badge">● VERIFIED</span></div>
+            <p id="contractMeta">20-province cooperative network rollout</p>
+            <div class="tag-row"><span>Cooperative</span><span>20 provinces</span><span>Pending expansion</span></div>
+          </article>
+
+          <div class="section-label">FINANCIAL INDICATORS</div>
+          <div class="metric-grid">
+            <article><span>Contract value</span><strong id="kpiContract">—</strong><small id="kpiContractNote">04_CONTRACTS</small></article>
+            <article><span>Gross margin</span><strong id="kpiMargin">—</strong><small id="kpiMarginNote">Target 28%</small></article>
+            <article><span>Liquidity need</span><strong id="kpiGap">—</strong><small id="kpiGapNote">Funding gap + bond</small></article>
+            <article><span>Risk level</span><strong id="kpiRisk">—</strong><small id="kpiRiskNote">CASE / ENTERPRISE</small></article>
+          </div>
+
+          <div class="section-label">DATA STATUS</div>
+          <article class="data-status-card">
+            <div><span>Workbook</span><strong class="truncate" id="workbookStatus">Loading…</strong></div>
+            <div><span>Source hash</span><code id="sourceHash">—</code></div>
+            <div><span>Schema validation</span><strong id="schemaStatus">Đang kiểm tra</strong></div>
+            <div><span>Missing required data</span><strong id="missingDataCount">0</strong></div>
+            <div><span>Contract funding mapping</span><strong id="fundingMappingStatus">WAITING</strong></div>
+            <div><span>Phân tích dòng tiền</span><strong id="cashflowDataStatus">CHỜ PHÂN TÍCH</strong></div>
+          </article>
+
+          <details class="input-controls">
+            <summary>Xác nhận hồ sơ <span>Tích sau khi kiểm tra</span></summary>
+            <div class="evidence-grid-compact">
+              <label><input id="contractSigned" type="checkbox"> Hợp đồng/phạm vi</label>
+              <label><input id="agingEvidence" type="checkbox"> Bảng tuổi nợ</label>
+              <label><input id="capacityPlan" type="checkbox"> Kế hoạch triển khai</label>
+              <label><input id="txnReviewed" type="checkbox"> Giao dịch đã xác minh</label>
+            </div>
+          </details>
+
+          <section class="cashflow-compact">
+            <div class="card-heading">
+              <div><h3>Dòng tiền hợp đồng</h3><span id="cashflowMethod" class="subtle">Đơn hàng (06) + Hóa đơn (07) · triệu VND</span></div>
+              <div class="legend">
+                <span><i class="legend-line after"></i>Dòng tiền tích lũy</span>
+                <span><i class="legend-area deficit"></i>Vùng thiếu hụt vốn</span>
+                <span><i class="legend-line break-even"></i>Điểm hòa vốn</span>
+              </div>
+            </div>
+            <div id="cashflowChart" class="chart-empty">Chưa có dữ liệu phân tích</div>
+          </section>
+        </div>
+      </section>
+
+      <section class="stage-column workflow-column">
+        <header class="stage-header">
+          <span class="stage-number teal">2</span>
+          <div><h2>Agent Workflow</h2><p>Financial Snapshot → Risk Report → Decision Card</p></div>
+          <span id="workflowState" class="micro-badge">READY</span>
+        </header>
+        <div class="stage-scroll">
+          <div class="agent-stack">
+            <article class="agent-node" data-agent="finance">
+              <div class="agent-top"><span class="agent-icon blue"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3.5" y="4" width="12" height="15" rx="1.5"/><path d="M7 8h5M7 12h5M7 16h5"/><circle cx="5.5" cy="8" r=".5"/><circle cx="5.5" cy="12" r=".5"/><circle cx="5.5" cy="16" r=".5"/><ellipse cx="23" cy="10" rx="6" ry="3"/><path d="M17 10v12c0 1.7 2.7 3 6 3s6-1.3 6-3V10M17 16c0 1.7 2.7 3 6 3s6-1.3 6-3"/></svg></span><div><h3>Data & Finance Agent</h3><span class="agent-status">WAITING</span></div><i class="state-dot"></i></div>
+              <p id="financeAgentSummary">Đọc workbook, chuẩn hóa dữ liệu và tạo Financial Snapshot.</p>
+              <div class="agent-meta"><span>01</span><span>TeamPack</span><strong>Financial Snapshot</strong></div>
+            </article>
+            <div class="handoff">↓ <span>Financial Snapshot</span></div>
+            <article class="agent-node" data-agent="risk">
+              <div class="agent-top"><span class="agent-icon amber"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3 27 7v8c0 7-4.5 11.5-11 14-6.5-2.5-11-7-11-14V7l11-4Z"/><path d="m10 16 4 4 8-9"/></svg></span><div><h3>Risk & Compliance Agent</h3><span class="agent-status">WAITING</span></div><i class="state-dot"></i></div>
+              <p id="riskAgentSummary">Áp rule, phát hiện dữ liệu thiếu và kích hoạt approval gate.</p>
+              <div class="agent-meta"><span>02</span><span>Rules</span><strong>Risk Report</strong></div>
+            </article>
+            <div class="handoff">↓ <span>Risk Report</span></div>
+            <article class="agent-node" data-agent="decision">
+              <div class="agent-top"><span class="agent-icon violet"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="23" cy="22" r="3"/><path d="M23 16v3M23 25v3M17 22h3M26 22h3M18.8 17.8l2.1 2.1M25.1 24.1l2.1 2.1M27.2 17.8l-2.1 2.1M20.9 24.1l-2.1 2.1"/></svg></span><div><h3>Decision & Partner Agent</h3><span class="agent-status">WAITING</span></div><i class="state-dot"></i></div>
+              <p id="decisionAgentSummary">Xếp hạng phương án vốn và tạo Decision Card có kiểm soát.</p>
+              <div class="agent-meta"><span>03</span><span>Partner precheck</span><strong>Decision Card</strong></div>
+            </article>
+          </div>
+
+          <article id="dataQualityCard" class="control-card neutral">
+            <div class="control-title"><div><span class="control-icon openai-mark"><img src="/static/assets/openai-blossom.svg" alt="OpenAI"></span><strong>Data & OpenAI Control</strong></div><span id="controlStatus" class="micro-badge">NOT RUN</span></div>
+            <p id="controlMessage">Lỗi dữ liệu, API fallback và validation guardrail sẽ được hiển thị tại đây.</p>
+            <div class="quality-compact"><div><span class="quality-count blocking"><strong id="controlBlocking">—</strong> Blocking</span><span class="quality-count warning"><strong id="controlWarning">—</strong> Warning</span></div><button id="openDataQuality" class="detail-button" type="button" disabled>Chi tiết</button></div>
+            <div class="control-facts"><span>Data issues <strong id="controlMissing">—</strong></span><span>OpenAI <strong id="controlOpenAI">—</strong></span></div>
+          </article>
+
+          <section class="risk-panel">
+            <div class="card-heading"><div><h3>Risk & Controls</h3><span id="riskSummary" class="subtle">Chưa chạy</span></div><button id="openReconciliation" class="detail-button reconciliation-open" type="button" disabled hidden aria-hidden="true">Chi tiết đối soát</button></div>
+            <div id="riskList" class="empty-list">Các cảnh báo sẽ xuất hiện tại đây.</div>
+          </section>
+
+          <section class="runtime-panel">
+            <div class="card-heading"><div><h3>Runtime Trace</h3><span class="subtle">Audit trail · no secrets</span></div><button id="toggleLog" class="text-button">Mở log</button></div>
+            <div id="logBody" class="log-body collapsed"><table><thead><tr><th>Time</th><th>Component</th><th>Event</th><th>Status</th></tr></thead><tbody id="logRows"></tbody></table></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="stage-column decision-column">
+        <header class="stage-header">
+          <span class="stage-number violet">3</span>
+          <div><h2>Decision Dashboard</h2><p>One opportunity · Three reasons · One project call</p></div>
+          <span id="traceId" class="trace-badge">CHƯA CHẠY</span>
+        </header>
+        <div class="stage-scroll">
+          <section id="decisionCard" class="decision-card empty">
+            <div class="decision-top"><div><span>AI-ASSISTED DECISION</span><div id="decisionType" class="decision-type">WAITING FOR WORKFLOW</div></div><span id="decisionConfidence" class="confidence-chip">—</span></div>
+            <h3 id="heroTitle">Tải TeamPack và khởi chạy hệ thống</h3>
+            <p id="heroSubtitle">Luồng Input → 3 Agents → Decision được truy vết đến từng sheet của TeamPack.</p>
+            <ol id="decisionReasons" class="decision-reasons"><li>Chạy workflow để tổng hợp dữ liệu tài chính, rủi ro và đối tác.</li></ol>
+            <div class="protective-condition"><span>ONE PROTECTIVE CONDITION</span><p id="humanCondition">Điểm xác nhận của Founder sẽ xuất hiện tại đây.</p></div>
+          </section>
+
+          <section class="partner-panel">
+            <div class="card-heading"><div><h3>Partner Option Matrix</h3><span class="subtle">Tiền kiểm mô phỏng · chưa phải phê duyệt tín dụng</span></div><span id="partnerStatus" class="micro-badge">WAITING</span></div>
+            <div class="table-wrap"><table><thead><tr><th>#</th><th>Phương án</th><th>Liquidity</th><th>Fit</th><th>Status</th></tr></thead><tbody id="partnerRows"><tr><td colspan="5" class="table-empty">Chưa có kết quả xếp hạng.</td></tr></tbody></table></div>
+            <p class="partner-disclaimer">Logo dùng để nhận diện · Kết quả do prototype mô phỏng · Chưa kết nối API ngân hàng.</p>
+          </section>
+
+          <aside class="approval-gate">
+            <div class="gate-top"><div><span>FOUNDER APPROVAL GATE</span><strong>Human-in-the-loop</strong></div><div id="gateStatus" class="gate-status pending"><span>●</span> NOT READY</div></div>
+            <label class="approval-check"><input id="approvalConfirm" type="checkbox" disabled><span id="approvalInstruction">Tôi đã đọc điều kiện bảo vệ và hiểu đây là tiền kiểm mô phỏng.</span></label>
+            <div class="approval-row"><input id="founderName" placeholder="Tên Founder" disabled><button id="rejectButton" class="reject-button" disabled>Từ chối</button><button id="approveButton" class="approve-button" disabled>Phê duyệt</button></div>
+          </aside>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="dataQualityDialog" class="data-quality-dialog">
+    <div class="dialog-head"><div class="openai-dialog-title"><img src="/static/assets/openai-blossom.svg" alt="OpenAI"><div><span>FOUNDER CONTROL CENTER</span><h2>Data &amp; OpenAI Evidence · <b id="qualityContract">—</b></h2></div></div><button id="closeDataQuality" aria-label="Đóng">×</button></div>
+    <div id="controlTabs" class="control-tabs" role="tablist" aria-label="Chi tiết kiểm soát">
+      <button id="tabDataQuality" class="active" type="button" role="tab" aria-selected="true" aria-controls="panelDataQuality" data-control-tab="data-quality">Data Quality</button>
+      <button id="tabOpenAIExtraction" type="button" role="tab" aria-selected="false" aria-controls="panelOpenAIExtraction" data-control-tab="openai-extraction">OpenAI Extraction</button>
+      <button id="tabOpenAIGuardrails" type="button" role="tab" aria-selected="false" aria-controls="panelOpenAIGuardrails" data-control-tab="openai-guardrails">OpenAI Guardrails</button>
+    </div>
+
+    <section id="panelDataQuality" class="control-tab-panel active" role="tabpanel" aria-labelledby="tabDataQuality" data-control-panel="data-quality">
+      <div class="quality-dialog-summary"><div><span>Blocking</span><strong id="qualityBlocking">0</strong></div><div><span>Warning</span><strong id="qualityWarning">0</strong></div><div><span>Optional</span><strong id="qualityOptional">0</strong></div><div><span>Sheets affected</span><strong id="qualitySheets">0</strong></div></div>
+      <div class="quality-toolbar"><div id="qualityFilters" class="quality-filters"><button class="active" data-level="ALL">Tất cả</button><button data-level="BLOCKING">Blocking</button><button data-level="WARNING">Warning</button><button data-level="OPTIONAL">Optional</button></div><span id="qualityTruth">Rule engine là nguồn sự thật</span></div>
+      <div id="qualityGroups" class="quality-groups"><div class="quality-empty">Chạy Agent Workflow để kiểm tra TeamPack.</div></div>
+      <div class="quality-actions"><button id="downloadDataRequest" class="secondary-button" type="button">Tải Data Request</button><button id="uploadCorrectedPack" class="secondary-button" type="button">Upload TeamPack</button><button id="recheckData" class="primary-button" type="button">Kiểm tra lại</button></div>
+    </section>
+
+    <section id="panelOpenAIExtraction" class="control-tab-panel openai-panel" role="tabpanel" aria-labelledby="tabOpenAIExtraction" data-control-panel="openai-extraction" hidden>
+      <div class="openai-run-summary">
+        <div><span>Service</span><strong>OpenAI Responses API</strong></div>
+        <div><span>Model</span><strong id="extractionModel">—</strong></div>
+        <div><span>Extraction status</span><strong id="extractionStatus">NOT RUN</strong></div>
+        <div><span>Response ID</span><strong id="extractionResponseId">—</strong></div>
+      </div>
+      <div class="extraction-intro"><div><strong>Structured Evidence Extractor</strong><p>OpenAI chỉ đọc các đoạn văn bản được phép, trích xuất đúng ba tín hiệu và phải dẫn lại nguồn. Finance Math vẫn do rule engine tính.</p></div><span id="extractionOverallBadge" class="openai-state neutral">NOT RUN</span></div>
+      <div id="extractionFields" class="extraction-fields"><div class="openai-empty">Chạy Agent Workflow để xem ba trường evidence.</div></div>
+      <p class="dialog-note openai-note">SUPPORTED chỉ được sử dụng khi value, confidence, source và quote đều vượt qua kiểm định trên server.</p>
+    </section>
+
+    <section id="panelOpenAIGuardrails" class="control-tab-panel openai-panel" role="tabpanel" aria-labelledby="tabOpenAIGuardrails" data-control-panel="openai-guardrails" hidden>
+      <div class="guardrail-status-row">
+        <div><span>Extraction</span><strong id="guardrailExtractionStatus">NOT RUN</strong></div>
+        <div><span>Decision Challenger</span><strong id="guardrailChallengerStatus">NOT RUN</strong></div>
+        <div><span>Overall OpenAI</span><strong id="guardrailOverallStatus">NOT RUN</strong></div>
+      </div>
+      <div class="guardrail-columns">
+        <section><div class="guardrail-heading"><div><span>01</span><h3>Extraction validation</h3></div><small>Fingerprint · quote · source · confidence · semantic</small></div><div id="extractionValidationChecks" class="guardrail-checks"><div class="openai-empty compact">Chưa có validation event.</div></div></section>
+        <section><div class="guardrail-heading"><div><span>02</span><h3>Challenger validation</h3></div><small>Decision echo · financial echo · current-run fingerprint</small></div><div id="challengerValidationChecks" class="guardrail-checks"><div class="openai-empty compact">Chưa có validation event.</div></div></section>
+      </div>
+      <details class="masked-json" open><summary><span>Masked JSON sent to OpenAI</span><small>Không chứa API key, raw customer ID hay tài khoản ngân hàng</small></summary><div class="masked-json-grid"><section><h3>Evidence Extractor input</h3><pre id="extractionMaskedInput">{}</pre></section><section><h3>Decision Challenger input</h3><pre id="challengerMaskedInput">{}</pre></section></div></details>
+      <p class="dialog-note openai-note">API key chỉ tồn tại ở server environment; dữ liệu hiển thị tại đây là payload đã masking và kết quả validation của đúng lượt chạy.</p>
+    </section>
+  </dialog>
+
+  <dialog id="reconciliationDialog" class="reconciliation-dialog">
+    <div class="dialog-head"><div><span>TRANSACTION CONTROL</span><h2>Chi tiết đối soát · <b id="reconciliationContract">—</b></h2></div><button id="closeReconciliation" type="button" aria-label="Đóng">×</button></div>
+    <div class="reconciliation-kpis">
+      <div><span>Incoming đã kiểm tra</span><strong id="reconciliationTotal">0</strong></div>
+      <div><span>Trong phạm vi</span><strong id="reconciliationIncluded">0</strong></div>
+      <div><span>Loại trừ</span><strong id="reconciliationExcluded">0</strong></div>
+      <div><span>Bất thường</span><strong id="reconciliationAnomalies">0</strong></div>
+    </div>
+    <div id="reconciliationRoute" class="reconciliation-route" aria-label="Tuyến đối soát dữ liệu"><span>08_BANK_TXN</span><i>→</i><span>07_INVOICES</span><i>→</i><span>06_ORDERS</span><i>→</i><span>04_CONTRACTS</span><small>Đối soát theo khóa liên kết · không suy đoán giao dịch ngoài phạm vi</small></div>
+    <div class="reconciliation-toolbar"><div id="reconciliationFilters" class="reconciliation-filters"><button class="active" type="button" data-scope="ALL">ALL</button><button type="button" data-scope="CASE">CASE</button><button type="button" data-scope="ENTERPRISE">ENTERPRISE</button><button type="button" data-scope="REVIEW">REVIEW</button></div><span>Counterparty và account luôn được che</span></div>
+    <div class="reconciliation-table-wrap">
+      <table class="reconciliation-table">
+        <thead><tr><th>Giao dịch</th><th>Phạm vi</th><th>Kết quả đối soát</th><th>Số tiền</th><th>Trạng thái</th><th>Giải thích</th></tr></thead>
+        <tbody id="reconciliationRows"><tr><td colspan="6" class="reconciliation-empty">Chạy Agent Workflow để đối soát giao dịch.</td></tr></tbody>
+      </table>
+    </div>
+    <div class="reconciliation-actions"><span id="reconciliationTruth">Rule engine là nguồn sự thật</span><button id="downloadReconciliation" class="secondary-button" type="button" disabled>Tải JSON đối soát</button></div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

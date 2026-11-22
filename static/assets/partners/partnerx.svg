@@ -1,0 +1,16 @@
+<svg width="566" height="142" viewBox="0 0 566 142" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="pxGradient" x1="8" y1="12" x2="134" y2="134" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8B5CF6"/>
+      <stop offset="1" stop-color="#5B21B6"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="134" height="134" rx="30" fill="url(#pxGradient)"/>
+  <path d="M39 30H80L103 53V105C103 110.523 98.5228 115 93 115H39C33.4772 115 29 110.523 29 105V40C29 34.4772 33.4772 30 39 30Z" fill="white" fill-opacity="0.95"/>
+  <path d="M80 30V50C80 54.4183 83.5817 58 88 58H103" stroke="#6D28D9" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M47 76H72M47 91H64" stroke="#6D28D9" stroke-width="7" stroke-linecap="round"/>
+  <path d="M77 94L86 85C91.5228 79.4772 100.477 79.4772 106 85C111.523 90.5228 111.523 99.4772 106 105L97 114" stroke="#FBBF24" stroke-width="7" stroke-linecap="round"/>
+  <path d="M91 100L82 109C76.4772 114.523 67.5228 114.523 62 109C56.4772 103.477 56.4772 94.5228 62 89L71 80" stroke="#FBBF24" stroke-width="7" stroke-linecap="round"/>
+  <text x="164" y="86" fill="#2E1A52" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="60" font-weight="800" letter-spacing="-2">PartnerX</text>
+  <text x="168" y="118" fill="#7C6C96" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" letter-spacing="3">INVOICE FINANCE</text>
+</svg>

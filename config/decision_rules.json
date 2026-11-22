@@ -1,0 +1,20 @@
+{
+  "transaction_anomaly_threshold": 85,
+  "bank_confidence_threshold": 0.65,
+  "founder_approval_threshold_vnd": 300000000,
+  "working_capital_tenor_years": 0.5,
+  "missing_data_policy": "STOP_AND_REQUEST_EXACT_FIELD",
+  "decision_policy": {
+    "reject_margin_gap_pp": -8.0,
+    "require_liquidity_coverage": true,
+    "liquidity_coverage_reject_below": 0.8,
+    "liquidity_coverage_review_below": 1.0,
+    "openai_must_match_rule_engine": true
+  },
+  "finance_policy": {
+    "contract_cashflow_authority": "06_ORDERS+07_INVOICES",
+    "enterprise_cashflow_context": "09_CASHFLOW",
+    "avoid_order_cost_double_count": true,
+    "guarantee_collateral_as_cash_encumbrance": true
+  }
+}

@@ -1,0 +1,892 @@
+import os
+import pathlib
+import subprocess
+import sys
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+ROOT = pathlib.Path(__file__).resolve().parent
+HTML_PATH = ROOT / "docs" / "BAO_CAO_TONG_HOP_HE_THONG.html"
+PDF_PATH = ROOT / "BAO_CAO_PHAN_TICH_THIET_KE_VA_VIBE_CODE_HE_THONG.pdf"
+
+HTML_CONTENT = """<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Báo Cáo Phân Tích Thiết Kế Hệ Thống & Cẩm Nang Vibe Code Thuần</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 15mm 15mm 18mm 15mm;
+            @bottom-right {
+                content: "Trang " counter(page);
+                font-size: 9pt;
+                color: #64748b;
+            }
+            @bottom-left {
+                content: "OPC Agentic AI Ultimate — TEAM TSD";
+                font-size: 9pt;
+                color: #64748b;
+            }
+        }
+        
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-size: 10pt;
+            line-height: 1.55;
+            color: #1e293b;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Cover Page */
+        .cover-page {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            page-break-after: always;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            color: #ffffff;
+            border-radius: 8px;
+        }
+
+        .cover-header {
+            border-bottom: 2px solid #38bdf8;
+            padding-bottom: 20px;
+        }
+
+        .cover-badge {
+            display: inline-block;
+            background: rgba(56, 189, 248, 0.2);
+            border: 1px solid #38bdf8;
+            color: #38bdf8;
+            padding: 6px 14px;
+            font-size: 9pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border-radius: 20px;
+            margin-bottom: 15px;
+        }
+
+        .cover-title {
+            font-size: 26pt;
+            font-weight: 800;
+            line-height: 1.25;
+            margin: 0 0 12px 0;
+            color: #ffffff;
+        }
+
+        .cover-subtitle {
+            font-size: 13pt;
+            color: #94a3b8;
+            font-weight: 400;
+            margin: 0;
+        }
+
+        .cover-body {
+            margin: 40px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 24px;
+            border-radius: 8px;
+        }
+
+        .cover-body h3 {
+            color: #38bdf8;
+            font-size: 12pt;
+            margin-top: 0;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .cover-body ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #cbd5e1;
+            font-size: 10pt;
+        }
+
+        .cover-body li {
+            margin-bottom: 8px;
+        }
+
+        .cover-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            padding-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 9.5pt;
+            color: #94a3b8;
+        }
+
+        .cover-footer strong {
+            color: #ffffff;
+        }
+
+        /* Typography & Layout */
+        h1 {
+            font-size: 18pt;
+            font-weight: 800;
+            color: #0f172a;
+            border-bottom: 2.5px solid #2563eb;
+            padding-bottom: 8px;
+            margin-top: 28px;
+            margin-bottom: 16px;
+            page-break-after: avoid;
+        }
+
+        h2 {
+            font-size: 13.5pt;
+            font-weight: 700;
+            color: #1e3a8a;
+            border-left: 4px solid #2563eb;
+            padding-left: 10px;
+            margin-top: 22px;
+            margin-bottom: 12px;
+            page-break-after: avoid;
+        }
+
+        h3 {
+            font-size: 11pt;
+            font-weight: 700;
+            color: #334155;
+            margin-top: 16px;
+            margin-bottom: 8px;
+            page-break-after: avoid;
+        }
+
+        p {
+            margin-top: 0;
+            margin-bottom: 10px;
+            text-align: justify;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 14px 0;
+            font-size: 8.5pt;
+            page-break-inside: avoid;
+        }
+
+        th {
+            background-color: #1e293b;
+            color: #ffffff;
+            font-weight: 600;
+            text-align: left;
+            padding: 8px 10px;
+            border: 1px solid #334155;
+        }
+
+        td {
+            padding: 7px 10px;
+            border: 1px solid #cbd5e1;
+            vertical-align: top;
+        }
+
+        tr:nth-child(even) td {
+            background-color: #f8fafc;
+        }
+
+        /* Callouts / Boxes */
+        .callout {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 12px 14px;
+            border-radius: 0 6px 6px 0;
+            margin: 12px 0;
+            font-size: 9.5pt;
+            page-break-inside: avoid;
+        }
+
+        .callout-title {
+            font-weight: 700;
+            color: #15803d;
+            margin-bottom: 4px;
+        }
+
+        .callout-warning {
+            background-color: #fffbeb;
+            border-left-color: #d97706;
+        }
+
+        .callout-warning .callout-title {
+            color: #b45309;
+        }
+
+        .callout-info {
+            background-color: #eff6ff;
+            border-left-color: #2563eb;
+        }
+
+        .callout-info .callout-title {
+            color: #1d4ed8;
+        }
+
+        /* Code Blocks */
+        pre, code {
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+
+        pre {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            padding: 12px 14px;
+            border-radius: 6px;
+            font-size: 8pt;
+            line-height: 1.45;
+            overflow-x: hidden;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin: 12px 0;
+            page-break-inside: avoid;
+            border: 1px solid #334155;
+        }
+
+        p code, li code, td code {
+            background-color: #f1f5f9;
+            color: #0f172a;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 8.5pt;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Flow Diagram Containers */
+        .flow-diagram {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 14px;
+            margin: 14px 0;
+            page-break-inside: avoid;
+        }
+
+        .flow-diagram-title {
+            font-weight: 700;
+            font-size: 9.5pt;
+            color: #0f172a;
+            margin-bottom: 8px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .flow-step {
+            display: inline-block;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 6px 10px;
+            margin: 4px;
+            font-size: 8.5pt;
+            font-weight: 600;
+            color: #1e293b;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .flow-arrow {
+            display: inline-block;
+            color: #2563eb;
+            font-weight: 800;
+            margin: 0 4px;
+        }
+
+        .page-break {
+            page-break-after: always;
+        }
+
+        .badge {
+            display: inline-block;
+            font-size: 7.5pt;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .badge-red { background: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
+        .badge-yellow { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+        .badge-green { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+        .badge-blue { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+    </style>
+</head>
+<body>
+
+    <!-- TRANG BÌA -->
+    <div class="cover-page">
+        <div class="cover-header">
+            <span class="cover-badge">MIS Talent 2026 — Đề Án Quản Trị Ra Quyết Định</span>
+            <h1 class="cover-title">BÁO CÁO PHÂN TÍCH THIẾT KẾ HỆ THỐNG<br>& CẨM NANG VIBE CODING THUẦN</h1>
+            <p class="cover-subtitle">Kiến trúc Decision Cockpit kết hợp Động cơ Toán học Tất định & OpenAI Guardrails</p>
+        </div>
+
+        <div class="cover-body">
+            <h3>Nội Dung Báo Cáo Bao Gồm:</h3>
+            <ul>
+                <li><strong>PHẦN 1: TÀI LIỆU PHÂN TÍCH VÀ THIẾT KẾ HỆ THỐNG (SAD)</strong><br>
+                    Phân tích chi tiết hệ thống OPC Agentic AI Ultimate (v2.7.2): Single Source of Truth TeamPack 14 sheets, Data Quality Gate, OpenAI Structured Evidence Extraction (Pre-engine), Finance & Cashflow Math, Tuyến đối soát 4 tầng (08→07→06→04), Risk & Compliance Matrix, Partner Precheck, Hard Liquidity Gate, Decision Challenger (Post-engine), Founder Approval Gate & Kiểm toán không trùng lặp (Trace ID / Approval ID).</li>
+                <li><strong>PHẦN 2: CẨM NANG VIBE CODING THUẦN (ZERO-FRAMEWORK AGENTIC MIS)</strong><br>
+                    Quy trình 5 bước thực chiến vibe code thuần các hệ sinh thái MIS tương tự bằng Python chuẩn + Vanilla JS/CSS (không framework cồng kềnh, 1-click chạy ngay); Thiết kế chi tiết cho 2 bài toán tương tự: <em>(1) EPC Bidding & Project Cashflow Cockpit</em> và <em>(2) FMCG Supply Chain Factoring Cockpit</em>; kèm bộ Prompt Playbook mẫu chuẩn xác.</li>
+            </ul>
+        </div>
+
+        <div class="cover-footer">
+            <div>
+                <strong>Đơn vị phát triển:</strong> TEAM TSD<br>
+                <strong>Dự án:</strong> OPC Agentic AI Ultimate (v2.7.2-cashflow-clarity)
+            </div>
+            <div style="text-align: right;">
+                <strong>Phiên bản tài liệu:</strong> 1.0 (Full Official Release)<br>
+                <strong>Thời gian xuất bản:</strong> 13/10/2026
+            </div>
+        </div>
+    </div>
+
+    <!-- MỤC LỤC & TỔNG QUAN -->
+    <h1>MỤC LỤC NỘI DUNG</h1>
+    <table style="font-size: 9.5pt;">
+        <thead>
+            <tr>
+                <th style="width: 20%;">Phần</th>
+                <th style="width: 65%;">Chuyên Đề / Phân Hệ Chi Tiết</th>
+                <th style="width: 15%;">Trạng Thái</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>PHẦN 1</strong></td>
+                <td><strong>TÀI LIỆU PHÂN TÍCH VÀ THIẾT KẾ HỆ THỐNG (SAD)</strong><br>
+                    1.1. Bối cảnh & Mục tiêu Hệ thống OPC Agentic AI<br>
+                    1.2. Phân tích Yêu cầu Chức năng (FR) & Phi chức năng (NFR)<br>
+                    1.3. Thiết kế Kiến trúc Phân tầng & Luồng Tuần tự End-to-End<br>
+                    1.4. Thiết kế Chi tiết 9 Phân hệ Cốt lõi<br>
+                    1.5. Thiết kế Cơ sở Dữ liệu TeamPack (14 Sheets ERD) & JSON Schemas<br>
+                    1.6. Thiết kế An toàn, Bảo mật Thông tin & Chống Replay<br>
+                    1.7. Ma trận Truy vết Yêu cầu (RTM) & Nghiệm thu Kiểm thử 69/69 PASS
+                </td>
+                <td><span class="badge badge-green">Hoàn Tất</span></td>
+            </tr>
+            <tr>
+                <td><strong>PHẦN 2</strong></td>
+                <td><strong>CẨM NANG VIBE CODING THUẦN (ZERO-FRAMEWORK MIS)</strong><br>
+                    2.1. Triết lý Vibe Code thuần: Tối giản, Độc lập, Zero-Dependency<br>
+                    2.2. Hai Hệ thống Tương tự Điển hình (EPC Construction & FMCG Factoring)<br>
+                    2.3. Quy trình 5 Bước Vibe Code từ A-Z với AI Agent<br>
+                    2.4. Bộ Prompt Playbook Mẫu Thực Chiến cho từng phân hệ<br>
+                    2.5. Cấu trúc Dự án Mẫu Khởi Chạy 1-Click (.bat / .ps1)
+                </td>
+                <td><span class="badge badge-green">Hoàn Tất</span></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="page-break"></div>
+
+    <!-- ========================================================================= -->
+    <!-- PHẦN 1: TÀI LIỆU PHÂN TÍCH VÀ THIẾT KẾ HỆ THỐNG (SAD) -->
+    <!-- ========================================================================= -->
+    <h1>PHẦN 1: TÀI LIỆU PHÂN TÍCH VÀ THIẾT KẾ HỆ THỐNG (SAD)</h1>
+
+    <h2>1.1. Tổng Quan Nghiệp Vụ & Bài Toán Cần Giải Quyết</h2>
+    <p>
+        Trong hoạt động quản trị của doanh nghiệp sản xuất và thương mại nông sản / dược liệu như OPC, việc nhận thầu các hợp đồng kinh tế quy mô hàng tỷ đồng (ví dụ hợp đồng <code>CON-004</code> trị giá 4.2 tỷ VND) là cơ hội tăng trưởng nhưng cũng tiềm ẩn rủi ro khủng hoảng thanh khoản sâu sắc. Các thách thức cốt lõi bao gồm:
+    </p>
+    <ul>
+        <li><strong>Thiếu hụt thanh khoản (Funding Gap):</strong> Chi phí sản xuất, mua vật tư phải xuất tiền ngay từ các tháng đầu (Orders), trong khi dòng tiền thu về (Inflow) phụ thuộc vào tiến độ giao hàng, xuất hóa đơn (Invoices) và thời gian thanh toán công nợ kéo dài của đối tác.</li>
+        <li><strong>Dữ liệu phân mảnh trên bảng tính:</strong> Hồ sơ khách hàng, chi tiết hợp đồng, danh mục đơn hàng, hóa đơn, sao kê ngân hàng và hồ sơ hạn mức tín dụng nằm rải rác trên nhiều sheet độc lập. Việc đối soát thủ công dễ bỏ sót sai lệch và mất nhiều ngày.</li>
+        <li><strong>Nguy cơ ảo giác từ Generative AI:</strong> Các mô hình LLM thông thường khi tính toán tài chính dễ bị sai số học, tự bịa số tiền, tự ý phê duyệt tín dụng hoặc làm rò rỉ thông tin định danh cá nhân / tài khoản ngân hàng (PII).</li>
+    </ul>
+
+    <div class="callout callout-info">
+        <div class="callout-title">Nguyên Lý Thiết Kế Cốt Lõi Của OPC Agentic AI Ultimate (v2.7.2)</div>
+        Hệ thống phân tách rạch ròi giữa <strong>Deterministic Engine</strong> (100% phép toán, đối soát và quyết định thẩm định thực thi bằng thuật toán tất định, kiểm toán được) và <strong>OpenAI Services</strong> (chỉ đóng vai trò trích xuất bằng chứng phi cấu trúc có kiểm soát và phản biện quyết định có giới hạn; tuyệt đối không cho AI tính tiền hay thay quyền phê duyệt của Founder).
+    </div>
+
+    <h2>1.2. Phân Tích Yêu Cầu Hệ Thống</h2>
+    
+    <h3>Yêu Cầu Chức Năng (Functional Requirements - FR)</h3>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 12%;">Mã FR</th>
+                <th style="width: 25%;">Tên Chức Năng</th>
+                <th style="width: 63%;">Mô Tả Đặc Tả Nghiệp Vụ</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>FR-01</strong></td>
+                <td>Nạp TeamPack Động</td>
+                <td>Đọc file Excel (.xlsx), kiểm tra 14 sheets bắt buộc, tính mã băm SHA-256 nguồn; nạp danh mục hợp đồng động từ <code>04_CONTRACTS</code> vào Selector.</td>
+            </tr>
+            <tr>
+                <td><strong>FR-02</strong></td>
+                <td>Cổng Data Quality Gate</td>
+                <td>Quét toàn bộ sheet/record/field; phân loại lỗi theo 3 cấp độ: <code>BLOCKING</code> (dừng quy trình, trả <code>NEED MORE DATA</code>), <code>WARNING</code>, <code>OPTIONAL</code>.</td>
+            </tr>
+            <tr>
+                <td><strong>FR-03</strong></td>
+                <td>Trích Xuất Bằng Chứng AI</td>
+                <td>OpenAI trích 3 tín hiệu cấu trúc từ văn bản đã mask: <code>performance_bond_required</code>, <code>deployment_scope_provinces</code>, <code>collection_timing_signal</code>. Kiểm định substring quote và whitelist nguồn.</td>
+            </tr>
+            <tr>
+                <td><strong>FR-04</strong></td>
+                <td>Tính Dòng Tiền Hợp Đồng</td>
+                <td>Tính toán Contract Cashflow từng tháng từ <code>06_ORDERS</code> (chi phí) và <code>07_INVOICES</code> (doanh thu về); xác định đáy thiếu hụt dòng tiền (Funding Gap) và nhu cầu thanh khoản tức thời.</td>
+            </tr>
+            <tr>
+                <td><strong>FR-05</strong></td>
+                <td>Đối Soát Giao Dịch 4 Tầng</td>
+                <td>Tuyến <code>08_BANK_TXN → 07_INVOICES → 06_ORDERS → 04_CONTRACTS</code>. Lớp 1: Explicit Ref; Lớp 2: Exact Facts; Phát hiện Reverse Reconciliation (<code>RR-REC-001</code>); Tách phạm vi Case vs Enterprise.</td>
+            </tr>
+            <tr>
+                <td><strong>FR-06</strong></td>
+                <td>Đánh Giá Rủi Ro Hồ Sơ</td>
+                <td>Quản lý rủi ro Case (biên lợi nhuận, thanh khoản) và Enterprise Anomaly (<code>TXN-006</code>, <code>TXN-007</code>); khóa Approve nếu bất thường doanh nghiệp chưa được Founder xác minh.</td>
+            </tr>
+            <tr>
+                <td><strong>FR-07</strong></td>
+                <td>Tiền Kiểm Đối Tác Tài Trợ</td>
+                <td>Mô phỏng tiền kiểm ngân hàng (Partner Matrix: VietinBank, BIDV, VPBank, Techcombank...) dựa trên <code>11_BANK_PRODUCTS</code>; tính điểm phù hợp (Match Score).</td>
+            </tr>
+            <tr>
+                <td><strong>FR-08</strong></td>
+                <td>Động Cơ Quyết Định Tất Định</td>
+                <td>Quyết định theo thứ tự ưu tiên: Data Blocking → <code>NEED MORE DATA</code>; Coverage &lt; 80% → <code>REJECT</code>; Coverage 80–100% → <code>NEED REVIEW</code>; Coverage ≥ 100% → Đánh giá Margin/Risk → <code>CONDITIONAL ACCEPT</code>/<code>ACCEPT</code>.</td>
+            </tr>
+            <tr>
+                <td><strong>FR-09</strong></td>
+                <td>Phản Biện AI Có Giới Hạn</td>
+                <td>OpenAI Decision Challenger diễn giải đúng 3 lý do và 1 điểm xác nhận người dùng; recommendation và evidence echo bắt buộc phải trùng khớp 100% với Rule Engine.</td>
+            </tr>
+            <tr>
+                <td><strong>FR-10</strong></td>
+                <td>Cổng Phê Duyệt Founder</td>
+                <td>Khóa/mở nút Approve dựa trên tính hợp lệ; tạo định danh kiểm toán duy nhất (Trace ID & Approval ID bằng Timestamp + UUID4); ghi log <code>audit.jsonl</code> không rò rỉ secret.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Yêu Cầu Phi Chức Năng (Non-Functional Requirements - NFR)</h3>
+    <ul>
+        <li><strong>NFR-01 (Determinism & Auditability):</strong> Toàn bộ thuật toán tài chính và đối soát phải cho ra kết quả duy nhất, lặp lại được 100%. Trace ID và Approval ID mang định dạng <code>TRACE-YYYYMMDD-HHMMSS-UUID4HEX</code> chống trùng lặp tuyệt đối.</li>
+        <li><strong>NFR-02 (Data Privacy & Masking):</strong> Không gửi API key, số tài khoản thật hoặc định danh đối tác gốc ra bên ngoài hay lên DOM giao diện. Masking toàn bộ dưới dạng <code>SRC-xxx</code>, <code>CTR-xxx</code>, <code>CP-xxxx</code>.</li>
+        <li><strong>NFR-03 (Resilience & Safe-Fallback):</strong> Khi mất mạng hoặc API OpenAI lỗi, hệ thống kích hoạt chế độ trung thực: các số liệu toán học vẫn chạy, nhưng kết quả approvable bị hạ trần xuống <code>NEED REVIEW</code> và khóa Approve; không bịa kết quả AI.</li>
+        <li><strong>NFR-04 (Performance):</strong> Toàn bộ quy trình tính toán nội bộ (Data Quality, Finance, Reconciliation) hoàn tất dưới 100ms. Tổng thời gian xử lý toàn trình (kèm 2 lượt gọi OpenAI) dưới 4 giây.</li>
+    </ul>
+
+    <div class="page-break"></div>
+
+    <h2>1.3. Thiết Kế Kiến Trúc Tổng Thể & Luồng Dữ Liệu</h2>
+
+    <div class="flow-diagram">
+        <div class="flow-diagram-title">Sơ Đồ Luồng Dữ Liệu End-to-End Pipeline</div>
+        <div style="text-align: center; line-height: 2.2;">
+            <span class="flow-step">TeamPack (.xlsx)</span>
+            <span class="flow-arrow">➔</span>
+            <span class="flow-step">Masked Packet Builder</span>
+            <span class="flow-arrow">➔</span>
+            <span class="flow-step" style="background: #e0f2fe; border-color: #0284c7;">OpenAI Extraction</span>
+            <span class="flow-arrow">➔</span>
+            <span class="flow-step">Deterministic Validator</span>
+            <span class="flow-arrow">➔</span>
+            <span class="flow-step" style="background: #fef08a; border-color: #ca8a04;">Data Quality Gate</span>
+            <br>
+            <span class="flow-arrow">➔</span>
+            <span class="flow-step">Finance Agent (Cashflow Math)</span>
+            <span class="flow-arrow">➔</span>
+            <span class="flow-step">Reconciliation Engine (Tuyến 08→07→06→04)</span>
+            <span class="flow-arrow">➔</span>
+            <span class="flow-step">Risk & Partner Agents</span>
+            <br>
+            <span class="flow-arrow">➔</span>
+            <span class="flow-step" style="background: #bbf7d0; border-color: #16a34a;">Deterministic Decision Core</span>
+            <span class="flow-arrow">➔</span>
+            <span class="flow-step" style="background: #e0f2fe; border-color: #0284c7;">OpenAI Challenger</span>
+            <span class="flow-arrow">➔</span>
+            <span class="flow-step" style="background: #fbcfe8; border-color: #db2777;">Founder Approval Gate</span>
+        </div>
+    </div>
+
+    <h2>1.4. Thiết Kế Chi Tiết Các Phân Hệ Cốt Lõi</h2>
+
+    <h3>1. Phân hệ Data Authority & Data Quality Gate</h3>
+    <p>
+        Hệ thống xác lập thẩm quyền dữ liệu tối cao: <code>04_CONTRACTS</code> quyết định danh mục hợp đồng; <code>06_ORDERS + 07_INVOICES</code> quyết định dòng tiền và chi phí hợp đồng; <code>08_BANK_TXN</code> chỉ được ghi nhận vào hợp đồng khi có bằng chứng đối soát chính xác; <code>09_CASHFLOW</code> là bối cảnh doanh nghiệp.
+        Validator kiểm tra từng dòng và trường, phân loại nghiêm ngặt:
+    </p>
+    <ul>
+        <li><code>BLOCKING</code>: Thiếu trường bắt buộc tính toán (dừng downstream, trả về <code>NEED MORE DATA</code>).</li>
+        <li><code>WARNING</code>: Cảnh báo giới hạn bằng chứng (ví dụ thiếu chứng từ đối soát), workflow vẫn tiếp tục chạy.</li>
+        <li><code>OPTIONAL</code>: Dữ liệu bổ trợ, không làm ảnh hưởng đến quyết định.</li>
+    </ul>
+
+    <h3>2. Phân hệ OpenAI Structured Evidence Extraction (Pre-Engine)</h3>
+    <p>
+        Được thực thi tại file <code>evidence_extraction.py</code> trước khi đưa dữ liệu vào động cơ tính toán:
+    </p>
+    <ul>
+        <li><strong>Masking dữ liệu:</strong> Token hóa mã hợp đồng thành <code>CTR-xxxx</code>; ẩn danh hóa các nguồn văn bản thành alias <code>SRC-001</code>, <code>SRC-002</code>...</li>
+        <li><strong>Anti-Replay Fingerprint:</strong> Gắn <code>Trace ID</code> duy nhất của phiên chạy vào mã băm SHA-256 của payload. Output của phiên cũ không thể dùng lại cho phiên mới.</li>
+        <li><strong>3 Trường cấu trúc:</strong> 
+            <code>performance_bond_required</code> (Boolean), 
+            <code>deployment_scope_provinces</code> (Mảng tỉnh thành), 
+            <code>collection_timing_signal</code> (Enum: <code>MONTHLY</code>, <code>MILESTONE</code>, <code>AFTER_UAT</code>...).
+        </li>
+        <li><strong>Bộ kiểm định tất định:</strong> Bắt buộc <code>quote</code> phải là substring chính xác trong nguồn; kiểm tra whitelist nguồn; tự động loại bỏ nếu văn bản chứa từ phủ định (<em>"không yêu cầu bảo lãnh"</em>).</li>
+    </ul>
+
+    <h3>3. Phân hệ Data & Finance Agent (Contract Cashflow)</h3>
+    <p>
+        Thực hiện tính toán số học chính xác trên <code>06_ORDERS</code> và <code>07_INVOICES</code>:
+    </p>
+    <ul>
+        <li><strong>Dòng tiền chi (Outflow):</strong> Ghi nhận tại tháng phát sinh đơn hàng (chống đếm trùng chi phí).</li>
+        <li><strong>Dòng tiền thu (Inflow):</strong> Dùng <code>paid_date</code> nếu hóa đơn đã thanh toán; dùng <code>due_date</code> nếu chưa thanh toán; dùng hạn hợp đồng nếu chưa xuất hóa đơn.</li>
+        <li><strong>Công thức tài chính cốt lõi:</strong>
+            $$\\text{Gross Margin (\\%)} = \\frac{\\text{Doanh thu} - \\text{Chi phí}}{\\text{Doanh thu}} \\times 100$$
+            $$\\text{Funding Gap} = |\\min(0, \\min_{t} \\text{Dòng tiền lũy kế}_t)|$$
+            $$\\text{Immediate Liquidity Need} = \\text{Funding Gap} + \\text{Bond Impact (5\\% giá trị hợp đồng)}$$
+            $$\\text{Funding Coverage (\\%)} = \\frac{\\text{Hạn mức vốn lưu động tiềm năng}}{\\text{Immediate Liquidity Need}} \\times 100$$
+        </li>
+    </ul>
+
+    <h3>4. Phân hệ Đối Soát Giao Dịch Đa Tầng (Transaction Reconciliation)</h3>
+    <p>
+        Thực hiện theo tuyến chuẩn mực kiểm toán: <code>08_BANK_TXN → 07_INVOICES → 06_ORDERS → 04_CONTRACTS</code>:
+    </p>
+    <ul>
+        <li><strong>Lớp 1 (Explicit Reference):</strong> Giao dịch ngân hàng chứa chính xác mã <code>invoice_id</code> tồn tại.</li>
+        <li><strong>Lớp 2 (Exact Facts Match):</strong> Khi không có tham chiếu, chỉ khớp nếu duy nhất có 1 hóa đơn trùng khớp tuyệt đối cả 3 tiêu chí: Số tiền + Tên đối tác + Ngày thanh toán. Nếu có từ 2 hóa đơn trở lên $\\rightarrow$ Đánh dấu <code>AMBIGUOUS</code> (không đoán mò).</li>
+        <li><strong>Reverse Reconciliation:</strong> Hóa đơn có trạng thái <code>Paid</code> nhưng không tìm thấy dòng tiền vào (Credit) đối ứng $\\rightarrow$ Kích hoạt cảnh báo <code>RR-REC-001</code>.</li>
+        <li><strong>Phân tách Scope:</strong> Match thuộc hợp đồng khác bị loại khỏi Case hiện tại. Giao dịch bất thường lớn không rõ nguồn gốc (ví dụ <code>TXN-006</code>, <code>TXN-007</code>) được đưa vào phạm vi <code>ENTERPRISE</code>.</li>
+    </ul>
+
+    <h3>5. Phân hệ Risk, Partner & Deterministic Decision Core</h3>
+    <ul>
+        <li><strong>Human-in-the-loop:</strong> Bất thường doanh nghiệp chưa được Founder xác minh sẽ cưỡng chế <code>approval_allowed = False</code>.</li>
+        <li><strong>Hard Liquidity Gate:</strong> 
+            Funding Coverage &lt; 80% $\\rightarrow$ Cưỡng chế <strong>REJECT</strong> (Biên lợi nhuận không được dùng để che giấu thiếu hụt thanh khoản); 
+            80%–100% $\\rightarrow$ <strong>NEED REVIEW</strong>; 
+            ≥ 100% $\\rightarrow$ Đánh giá tiếp biên lợi nhuận, rủi ro và đối tác ngân hàng.
+        </li>
+    </ul>
+
+    <h3>6. Phân hệ Bounded OpenAI Decision Challenger (Post-Engine)</h3>
+    <p>
+        Chạy sau khi Engine hoàn tất; nhận snapshot tài chính đã mask. Guardrails bắt buộc: Khuyến nghị AI phải trùng khớp 100% với Rule Engine; diễn giải đúng 3 lý do; phản hồi lại đúng các số liệu tài chính (echo check). Nếu sai lệch $\\rightarrow$ Bị khóa bởi <code>BLOCKED_BY_VALIDATION</code>.
+    </p>
+
+    <h3>7. Phân hệ Founder Approval Gate & Kiểm Toán</h3>
+    <ul>
+        <li>Tạo Trace ID và Approval ID độc nhất: <code>TRACE-YYYYMMDD-HHMMSS-UUID4HEX</code>.</li>
+        <li>Phê duyệt chỉ tạo trạng thái <code>APPROVED_FOR_PRECHECK</code> với <code>external_submission_executed = False</code> để bảo vệ an toàn.</li>
+        <li>Nhật ký kiểm toán ghi tại <code>runtime_logs/audit.jsonl</code> loại bỏ toàn bộ dữ liệu nhạy cảm.</li>
+    </ul>
+
+    <div class="page-break"></div>
+
+    <!-- ========================================================================= -->
+    <!-- PHẦN 2: CẨM NANG VIBE CODING THUẦN (ZERO-FRAMEWORK AGENTIC MIS) -->
+    <!-- ========================================================================= -->
+    <h1>PHẦN 2: CẨM NANG VIBE CODING THUẦN (ZERO-FRAMEWORK MIS)</h1>
+
+    <h2>2.1. Triết Lý "Vibe Code Thuần" Trong Hệ Thống Quản Trị Quyết Định</h2>
+    <p>
+        "Vibe coding" không đồng nghĩa với việc giao phó toàn bộ cho AI viết bừa bãi. Trong các hệ thống MIS tài chính, <strong>Vibe Code thuần</strong> là phương pháp kết hợp sức mạnh lập trình của AI với <strong>Kiến trúc Zero-Framework</strong>:
+    </p>
+    <ul>
+        <li><strong>Không phụ thuộc Framework nặng nề:</strong> Không dùng Next.js, React, Webpack hay Docker. Chỉ sử dụng thư viện chuẩn của Python (<code>http.server</code>, <code>json</code>, <code>urllib</code>) kết hợp với 1 thư viện đọc Excel duy nhất là <code>openpyxl</code>.</li>
+        <li><strong>Frontend Vanilla Độc Lập:</strong> Sử dụng HTML5, CSS3 và Vanilla JS thuần túy. Biểu đồ dòng tiền được vẽ trực tiếp bằng Canvas API hoặc SVG động; không cần nạp Chart.js hay D3.js.</li>
+        <li><strong>Tốc độ & Tính di động:</strong> Toàn bộ mã nguồn đóng gói gọn gàng, khởi chạy 1-click qua file <code>.bat</code> hoặc <code>.ps1</code>, thời gian nạp dưới 0.5 giây, không bao giờ lỗi version xung đột thư viện.</li>
+    </ul>
+
+    <h2>2.2. Hai Hệ Thống Tương Tự Điển Hình Nhân Bản Từ Kiến Trúc Này</h2>
+
+    <h3>Hệ Thống 1: EPC Project Cashflow & Bidding Cockpit (Xây Dựng & Cơ Điện)</h3>
+    <table style="font-size: 8.5pt;">
+        <tr>
+            <th style="width: 25%;">Thành Phần</th>
+            <th style="width: 75%;">Hiện Thực Chi Tiết</th>
+        </tr>
+        <tr>
+            <td><strong>Bối cảnh bài toán</strong></td>
+            <td>Nhà thầu xây dựng chuẩn bị ký gói thầu thi công hạ tầng / cao ốc trị giá 20–50 tỷ VND. Nguy cơ: Ứng vốn vật tư lớn, chủ đầu tư chậm nghiệm thu thanh toán.</td>
+        </tr>
+        <tr>
+            <td><strong>Sheets TeamPack</strong></td>
+            <td><code>01_PROJECT_PROFILE</code>, <code>02_BOM_COST</code> (Dự toán), <code>03_MILESTONES</code> (Tiến độ), <code>04_SUBCONTRACTORS</code>, <code>05_INVOICES</code>, <code>06_BANK_TXN</code>, <code>07_BANK_GUARANTEE</code> (Bảo lãnh tạm ứng & bảo hành).</td>
+        </tr>
+        <tr>
+            <td><strong>OpenAI Pre-Engine</strong></td>
+            <td>Trích xuất từ hồ sơ mời thầu: Điều kiện giải tỏa bảo lãnh tạm ứng, mức phạt trễ hạn (%/ngày), điều kiện nghiệm thu bàn giao UAT giai đoạn.</td>
+        </tr>
+        <tr>
+            <td><strong>Deterministic Engine</strong></td>
+            <td>Tính dòng tiền thi công theo tháng; tính toán bảo lãnh tạm ứng (thường 10–20%); đối soát chi phí vật tư nhà thầu phụ; xác định đáy dòng tiền công trình.</td>
+        </tr>
+        <tr>
+            <td><strong>Hard Decision Gate</strong></td>
+            <td>Coverage nguồn vốn bù đắp &lt; 85% hoặc biên lợi nhuận ròng dự án &lt; 7% $\\rightarrow$ Cưỡng chế <code>REJECT</code>.</td>
+        </tr>
+    </table>
+
+    <h3>Hệ Thống 2: FMCG Supply Chain Factoring Cockpit (Bao Thanh Toán Chuỗi Bán Lẻ)</h3>
+    <table style="font-size: 8.5pt;">
+        <tr>
+            <th style="width: 25%;">Thành Phần</th>
+            <th style="width: 75%;">Hiện Thực Chi Tiết</th>
+        </tr>
+        <tr>
+            <td><strong>Bối cảnh bài toán</strong></td>
+            <td>Doanh nghiệp sản xuất hàng tiêu dùng cung ứng vào chuỗi siêu thị lớn (WinMart, Co.opmart, BigC) bị chiếm dụng vốn lưu động từ 60–90 ngày.</td>
+        </tr>
+        <tr>
+            <td><strong>Sheets TeamPack</strong></td>
+            <td><code>01_SUPPLIER_PROFILE</code>, <code>02_RETAILERS</code>, <code>03_PURCHASE_ORDERS (PO)</code>, <code>04_DELIVERY_NOTES (POD)</code>, <code>05_VAT_INVOICES</code>, <code>06_BANK_TXN</code>, <code>07_FACTORING_LIMITS</code>.</td>
+        </tr>
+        <tr>
+            <td><strong>OpenAI Pre-Engine</strong></td>
+            <td>Trích xuất từ hợp đồng khung siêu thị: Tỷ lệ phạt trả hàng (Return Rate), chiết khấu thương mại theo doanh số, điều khoản cấn trừ công nợ tồn kho.</td>
+        </tr>
+        <tr>
+            <td><strong>Deterministic Engine</strong></td>
+            <td>Đối soát 4 chặng: <code>PO → POD → Invoice → Bank TXN</code>. Tính hạn mức bao thanh toán khả dụng (80% hóa đơn giao thành công); tính chi phí lãi chiết khấu.</td>
+        </tr>
+        <tr>
+            <td><strong>Hard Decision Gate</strong></td>
+            <td>Nếu hóa đơn có tranh chấp giao nhận hoặc tỷ lệ trả hàng siêu thị vượt 5% $\\rightarrow$ Khóa Approve, hạ xuống <code>NEED REVIEW</code>.</td>
+        </tr>
+    </table>
+
+    <div class="page-break"></div>
+
+    <h2>2.3. Quy Trình 5 Bước Vibe Code Thuần Từ Ý Tưởng Đến Thực Tế</h2>
+
+    <div class="flow-diagram">
+        <div class="flow-diagram-title">Quy Trình 5 Bước Vibe Code Thuần Chuẩn Kỹ Nghệ</div>
+        <div style="text-align: center; line-height: 2;">
+            <span class="flow-step">1. Chuẩn Hóa Schema Excel</span>
+            <span class="flow-arrow">➔</span>
+            <span class="flow-step">2. Dựng Server Python Thuần</span>
+            <span class="flow-arrow">➔</span>
+            <span class="flow-step">3. Vibe Engine Toán Học</span>
+            <span class="flow-arrow">➔</span>
+            <span class="flow-step">4. Đóng Hộp Cát AI</span>
+            <span class="flow-arrow">➔</span>
+            <span class="flow-step">5. Ghép UI & File .BAT</span>
+        </div>
+    </div>
+
+    <h3>Bước 1: Chuẩn Hóa Schema Dữ Liệu Excel (Data-First)</h3>
+    <p>
+        Bản chất của mọi hệ thống thông tin quản lý là dữ liệu có cấu trúc. Hãy yêu cầu AI Agent viết một đoạn script Python sinh ra file Excel mẫu (.xlsx) hoàn chỉnh với đầy đủ các khóa ngoại liên kết (ví dụ <code>contract_id → order_id → invoice_id → txn_id</code>). Không làm việc trên dữ liệu giả tưởng không có cấu trúc.
+    </p>
+
+    <h3>Bước 2: Dựng Khung Server Python Thuần (Zero-Dependency)</h3>
+    <p>
+        Tạo file <code>app.py</code> chỉ dùng <code>http.server.ThreadingHTTPServer</code>:
+    </p>
+    <pre><code>from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
+import json, urllib.parse
+
+class AppHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == "/api/bootstrap":
+            self.send_json({"status": "ok", "contracts": STATE.get_contracts()})
+        else:
+            self.serve_static(self.path)
+
+    def do_POST(self):
+        if self.path == "/api/analyze":
+            payload = self.read_json()
+            self.send_json(STATE.analyze(payload))</code></pre>
+
+    <h3>Bước 3: Vibe Engine Toán Học & Đối Soát Tất Định (Deterministic Core)</h3>
+    <p>
+        Tạo file <code>engine.py</code> chứa các hàm toán học thuần túy (pure functions):
+    </p>
+    <ul>
+        <li>Hàm đọc file Excel qua <code>openpyxl</code> và nạp vào bộ nhớ RAM.</li>
+        <li>Hàm tính toán dòng tiền từng tháng từ ngày PO và ngày Invoice; tính Funding Gap là đáy thấp nhất của dòng tiền tích lũy.</li>
+        <li>Hàm đối soát 2 lớp: Lớp 1 tìm chính xác mã Invoice trong nội dung sao kê; Lớp 2 tìm bộ 3 số tiền + đối tác + ngày thanh toán duy nhất.</li>
+        <li>Hàm cây quyết định: Đặt các ngưỡng chặn cứng (Hard Liquidity Gate).</li>
+    </ul>
+
+    <h3>Bước 4: Đóng Hộp Cát Cho AI (Sandboxed AI Integration)</h3>
+    <p>
+        Tách biệt làm 2 file riêng:
+    </p>
+    <ul>
+        <li><code>evidence_extraction.py</code>: Nhận văn bản đã mask, gọi OpenAI Responses API với JSON Schema nghiêm ngặt. Viết hàm validator deterministic kiểm tra từng chuỗi <code>quote</code> trích dẫn có thực sự nằm trong văn bản nguồn hay không.</li>
+        <li><code>openai_client.py</code>: Nhận snapshot đã mask sau engine. Yêu cầu AI đưa ra đúng 3 lý do và khóa chặt: Khuyến nghị AI phải trùng khớp 100% với Rule Engine.</li>
+    </ul>
+
+    <h3>Bước 5: Bọc Giao Diện Bàn Điều Khiển & Khởi Chạy 1-Click</h3>
+    <ul>
+        <li>Xây dựng thư mục <code>static/</code> gồm <code>index.html</code>, <code>styles.css</code> và <code>app.js</code>. Dùng CSS Flexbox/Grid hiện đại, tối ưu công thái học, thẻ canvas vẽ biểu đồ.</li>
+        <li>Tạo hàm sinh mã kiểm toán: <code>make_audit_id()</code> bằng Timestamp + UUID4 không trùng lặp.</li>
+        <li>Tạo file <code>START_APP.bat</code> để người dùng nhấp đúp là khởi chạy ngay server và tự động mở trình duyệt web.</li>
+    </ul>
+
+    <div class="page-break"></div>
+
+    <h2>2.4. Bộ Prompt Playbook Mẫu Để Chỉ Đạo AI Agent (Antigravity / Cursor)</h2>
+
+    <div class="callout callout-warning">
+        <div class="callout-title">Kỹ Thuật Prompting Cho Vibe Code Thuần: Prompt Theo Từng Hộp Cát</div>
+        Tuyệt đối không yêu cầu AI <em>"Hãy viết cho tôi toàn bộ hệ thống này"</em> trong 1 prompt duy nhất (dễ gây quá tải context và sinh code chắp vá). Hãy prompt tuần tự theo 4 mẫu chuẩn hóa sau:
+    </div>
+
+    <h3>Prompt 1: Sinh File Excel Dữ Liệu Nguồn (Data Pack Generator)</h3>
+    <pre><code>Hãy viết một script Python độc lập sinh file Excel 'ProjectDataPack.xlsx' gồm 10 sheets:
+01_PROFILE, 02_CONTRACTS, 03_ORDERS, 04_INVOICES, 05_BANK_TXN, 06_CREDIT_LIMITS...
+Yêu cầu:
+- Các sheets phải có liên kết khóa ngoại chuẩn: contract_id -> order_id -> invoice_id.
+- Tạo ít nhất 3 hợp đồng mẫu: 1 hợp đồng dòng tiền lành mạnh, 1 hợp đồng thâm hụt thanh khoản sâu
+  (Funding Gap > 1 tỷ), và 1 hợp đồng có giao dịch ngân hàng bất thường chưa khớp hóa đơn.</code></pre>
+
+    <h3>Prompt 2: Viết Động Cơ Tính Dòng Tiền & Đối Soát Tất Định (Pure Engine)</h3>
+    <pre><code>Viết class DecisionEngine trong engine.py sử dụng thư viện openpyxl:
+1. Đọc dữ liệu từ file Excel vào bộ nhớ RAM.
+2. Hàm tính Contract Cashflow theo từng tháng:
+   - Chi phí (Outflow): Ghi nhận tại tháng của đơn hàng (03_ORDERS).
+   - Dòng tiền vào (Inflow): Ghi nhận tại ngày paid_date của hóa đơn đã trả hoặc due_date của hóa đơn chưa trả.
+   - Tính Funding Gap = đáy âm sâu nhất của dòng tiền lũy kế.
+3. Hàm đối soát giao dịch ngân hàng:
+   - Lớp 1: Khớp chính xác invoice_id trong nội dung chuyển khoản.
+   - Lớp 2: Khớp exact facts duy nhất: amount + counterparty + date. Nếu có > 1 ứng viên, trả về AMBIGUOUS.
+4. Động cơ quyết định: Nếu Funding Coverage < 80%, trả về REJECT bất kể biên lợi nhuận.</code></pre>
+
+    <h3>Prompt 3: Tạo Module Trích Xuất Bằng Chứng AI Có Kiểm Định Substring</h3>
+    <pre><code>Tạo file evidence_extraction.py:
+1. Hàm build_packet(): Nhận điều khoản hợp đồng, thay thế tên khách hàng và tài khoản bằng token alias SRC-001.
+   Tạo fingerprint SHA-256 kết hợp giữa nội dung và trace_id phiên chạy để chống replay.
+2. Gọi OpenAI Responses API với schema trả về 3 trường: performance_bond_required, provinces, timing_signal.
+   Mỗi trường bắt buộc có: status, value, confidence, source_id, quote.
+3. Hàm validate_output(): Kiểm tra quote phải là substring chính xác nằm trong tài liệu nguồn. Nếu nguồn chứa
+   từ phủ định ('không yêu cầu bảo lãnh'), bắt buộc từ chối giá trị true.</code></pre>
+
+    <h3>Prompt 4: Dựng Web Server Python Thuần & Bàn Điều Khiển Cockpit</h3>
+    <pre><code>Tạo app.py bằng ThreadingHTTPServer của Python chuẩn (không dùng Flask/FastAPI):
+- API /api/bootstrap trả danh mục hợp đồng.
+- API /api/analyze chạy pipeline phân tích.
+- API /api/approve ghi nhận phê duyệt của Founder kèm Trace ID và Approval ID độc nhất (Timestamp + UUID4).
+- Giao diện static/index.html và static/app.js: Thiết kế Dark Theme hiện đại, biểu đồ dòng tiền vẽ bằng Canvas thuần,
+  có modal Xác nhận hồ sơ với 4 checkbox không tích sẵn để đảm bảo Human-in-the-loop.</code></pre>
+
+    <div class="page-break"></div>
+
+    <h2>2.5. Cấu Trúc Dự Án Mẫu Khởi Chạy 1-Click (Project Blueprint)</h2>
+
+    <pre><code>MY_AGENTIC_COCKPIT/
+│
+├── START_LIVE.bat              # Script Windows nhấp đúp 1-click khởi chạy
+├── START_LIVE.ps1              # Script PowerShell kiểm tra Python, prompt API key an toàn
+├── app.py                      # Server Python chuẩn (ThreadingHTTPServer + API Handlers)
+├── engine.py                   # Động cơ toán học tất định, Cashflow, Đối soát, Hard Gates
+├── evidence_extraction.py      # Trích xuất bằng chứng cấu trúc AI (Pre-Engine + Validator)
+├── openai_client.py            # Phản biện AI Bounded Decision Challenger (Post-Engine)
+│
+├── config/
+│   └── decision_rules.json     # Các ngưỡng quy tắc thẩm định tài chính & rủi ro
+│
+├── data/
+│   └── Canonical_TeamPack.xlsx # Nguồn dữ liệu chân lý duy nhất (Single Source of Truth)
+│
+├── runtime_logs/
+│   └── audit.jsonl             # Nhật ký kiểm toán có cấu trúc, loại bỏ hoàn toàn secrets
+│
+├── static/
+│   ├── index.html              # Màn hình Cockpit trực quan, công thái học cao cấp
+│   ├── styles.css              # Vanilla CSS (Flexbox/Grid, Dark Mode)
+│   └── app.js                  # Vanilla JS điều khiển giao diện, vẽ biểu đồ Canvas
+│
+└── tests/
+    ├── test_engine.py          # Kiểm thử tự động tính toán dòng tiền và Data Quality Gate
+    ├── test_reconciliation.py  # Kiểm thử đối soát giao dịch 2 lớp và Reverse Warning
+    └── test_evidence.py        # Kiểm thử bộ lọc chống ảo giác, chống replay của AI</code></pre>
+
+    <!-- ========================================================================= -->
+    <!-- PHẦN 3: KẾT LUẬN -->
+    <!-- ========================================================================= -->
+    <h1>PHẦN 3: TỔNG KẾT & KẾT LUẬN</h1>
+    <p>
+        Bản báo cáo này đã tổng hợp toàn diện cả hai khía cạnh then chốt trong kỹ nghệ phát triển Hệ thống Thông tin Quản lý hiện đại:
+    </p>
+    <ol>
+        <li><strong>Về mặt Phân tích & Thiết kế Hệ thống:</strong> Khẳng định mô hình kết hợp (Hybrid Architecture) giữa <em>Deterministic Engine</em> và <em>Sandboxed AI</em> là con đường chuẩn xác nhất cho các bài toán tài chính doanh nghiệp. Mô hình này giúp loại bỏ 100% rủi ro ảo giác số học của AI, bảo vệ quyền riêng tư dữ liệu, đảm bảo khả năng kiểm toán giải trình minh bạch và giữ trọn quyền quyết định tối cao cho người sáng lập (Founder).</li>
+        <li><strong>Về mặt Phương pháp Vibe Coding Thuần:</strong> Chứng minh rằng việc xây dựng các ứng dụng thông minh cấp doanh nghiệp không bắt buộc phải đánh đổi bằng các framework phức tạp, nặng nề. Với tư duy kiến trúc đúng đắn và quy trình prompt có cấu trúc, các nhà phát triển hoàn toàn có thể vibe-code ra những sản phẩm MIS tinh gọn, độc lập, tốc độ cực nhanh và vận hành bền bỉ.</li>
+    </ol>
+
+    <div class="callout callout-info">
+        <div class="callout-title">Thông Điệp Cam Kết Của Đội Ngũ Phát Triển (TEAM TSD)</div>
+        <em>"OPC Agentic AI Ultimate không tạo ra một chatbot nói chung chung. Chúng tôi tạo ra một Bàn điều khiển Quyết định có thể kiểm chứng, nơi mọi con số đều có nguồn gốc chứng từ, mọi luồng tiền đều được dự báo minh bạch và mọi quyết định đều có con người chịu trách nhiệm."</em>
+    </div>
+
+</body>
+</html>
+"""
+
+def main():
+    print("1. Ghi nội dung HTML tổng hợp vào docs/BAO_CAO_TONG_HOP_HE_THONG.html...")
+    HTML_PATH.parent.mkdir(parents=True, exist_ok=True)
+    HTML_PATH.write_text(HTML_CONTENT, encoding="utf-8")
+    print(f"   -> Đã ghi file HTML: {HTML_PATH} ({len(HTML_CONTENT)} bytes)")
+
+    print("2. Tìm trình duyệt Edge / Chrome để xuất PDF...")
+    edge_paths = [
+        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+        r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+    ]
+    browser_exe = None
+    for p in edge_paths:
+        if os.path.exists(p):
+            browser_exe = p
+            break
+
+    if not browser_exe:
+        print("LỖI: Không tìm thấy Microsoft Edge hoặc Google Chrome để xuất PDF.")
+        sys.exit(1)
+
+    print(f"   -> Sử dụng trình duyệt: {browser_exe}")
+    cmd = [
+        browser_exe,
+        "--headless=new",
+        "--disable-gpu",
+        "--no-pdf-header-footer",
+        f"--print-to-pdf={str(PDF_PATH.resolve())}",
+        str(HTML_PATH.resolve()),
+    ]
+    print(f"3. Đang render PDF: {PDF_PATH.name}...")
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        print("Lỗi khi chạy lệnh print-to-pdf:", result.stderr)
+        sys.exit(result.returncode)
+
+    if PDF_PATH.exists() and PDF_PATH.stat().st_size > 0:
+        size_kb = PDF_PATH.stat().st_size / 1024
+        print(f"THÀNH CÔNG: Đã tạo file PDF tại:")
+        print(f"-> {PDF_PATH} ({size_kb:.1f} KB)")
+    else:
+        print("LỖI: File PDF chưa được tạo hoặc dung lượng rỗng.")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()

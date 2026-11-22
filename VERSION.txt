@@ -1,0 +1,25 @@
+TEAM TSD OPC Agentic AI Ultimate
+Version: 2.7.2-cashflow-clarity
+Build date: 2026-07-21
+Decision engine: deterministic rules + OpenAI Structured Evidence Extraction + bounded Decision Challenger
+Local port: 8766 (isolated from legacy project on 8765)
+External submission: disabled
+UI: three-column Input Data / Agent Workflow / Decision Dashboard
+Data source: one canonical TeamPack; no staged Complete/Incomplete workbook
+Data gate: exhaustive multi-sheet validation with BLOCKING / WARNING / OPTIONAL
+Audit identity: full timestamp + UUID for every Trace ID and Approval ID; UI shows compact labels only
+Approval linkage: every Approval ID stores the exact full Trace ID of its run
+Reconciliation: deterministic 08_BANK_TXN -> 07_INVOICES -> 06_ORDERS -> 04_CONTRACTS
+Matching policy: exact evidence only; no fuzzy guessing; unmatched and ambiguous records stay explicit
+Dynamic UI: no transaction ID is hard-coded; browser renders backend reconciliation scope/status
+Privacy: counterparty identifiers are masked before browser display or exported Decision JSON
+Enterprise anomaly gate: Founder evidence is required before an otherwise approvable result can be approved
+OpenAI core: structured evidence extraction before deterministic analysis; bounded challenger after analysis
+OpenAI replay guard: extraction and challenger fingerprints are bound to the unique Trace ID of each run
+OpenAI fail-safe: unavailable or invalid evidence caps approvable outcomes at NEED REVIEW; REJECT and NEED MORE DATA are preserved
+Founder UX: Data Quality is the default control tab; OpenAI Extraction and OpenAI Guardrails are separate tabs
+Founder evidence UX: all confirmations start blank and reset when the contract or TeamPack changes
+Reconciliation UX: detail entry is hidden; deterministic reconciliation remains active in backend, Risk/Decision and sanitized export
+Cashflow UX: keeps the dynamic contract title/subtitle, adds a shaded funding-deficit area and clearer break-even line, and uses no explicit X/Y axis titles or closing-balance wording
+Semifinal scope: Live TeamPack only; Stress/Crisis UI deferred
+Demo timing: 3 presenters, 1 minute opening + 6 minutes live demo + 3 minutes Decision Reveal
